@@ -105,17 +105,34 @@ class DiscordStateManager:
                         self._state["users"][str(user_id)]["created_at"] = format_datetime(now())
                     
                     # Create and pin state message
-                    await self._create_state_message(channel)
-                    logger.info("Created new state")
+                    try:
+                        await self._create_state_message(channel)
+                        logger.info("Created new state message successfully")
+                    except Exception as create_err:
+                        logger.error(f"Failed to create state message: {create_err}", exc_info=True)
+                        # Try to save without pinning
+                        try:
+                            embed = self._create_state_embed()
+                            message = await channel.send(embed=embed)
+                            self._state_message_id = message.id
+                            logger.info("Created state message without pinning")
+                        except Exception as fallback_err:
+                            logger.error(f"Failed fallback state creation: {fallback_err}", exc_info=True)
+                            raise
                 
                 # Find or create backup thread
-                await self._setup_backup_thread(channel)
+                try:
+                    await self._setup_backup_thread(channel)
+                except Exception as backup_err:
+                    logger.warning(f"Failed to setup backup thread: {backup_err}")
+                    # Non-critical, continue anyway
                 
                 self._initialized = True
+                logger.info(f"State initialized successfully. State message ID: {self._state_message_id}")
                 return True
                 
             except Exception as e:
-                logger.error(f"Failed to initialize state: {e}")
+                logger.error(f"Failed to initialize state: {e}", exc_info=True)
                 return False
     
     async def _validate_and_migrate(self) -> None:

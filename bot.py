@@ -28,6 +28,7 @@ from services.gemini import gemini_service
 from cogs.tracking import TrackingCog
 from cogs.dashboard import DashboardCog
 from cogs.admin import AdminCog
+from cogs.user_commands import UserCommandsCog
 from utils import format_datetime, now
 
 
@@ -138,11 +139,13 @@ class LearningMentorBot(discord.Bot):
             tracking_cog = TrackingCog(self, self.state_manager, self.evaluator)
             dashboard_cog = DashboardCog(self, self.state_manager, self.evaluator)
             admin_cog = AdminCog(self, self.state_manager, self.evaluator)
+            user_commands_cog = UserCommandsCog(self, self.state_manager, self.evaluator)
             
             # Add cogs
             self.add_cog(tracking_cog)
             self.add_cog(dashboard_cog)
             self.add_cog(admin_cog)
+            self.add_cog(user_commands_cog)
             
             logger.info(f"Loaded {len(self.cogs)} cogs: {', '.join(self.cogs.keys())}")
             

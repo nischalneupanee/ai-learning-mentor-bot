@@ -669,6 +669,168 @@ class AdminCog(commands.Cog):
         except Exception as e:
             await ctx.respond(f"❌ Error: {e}", ephemeral=True)
             logger.error(f"Error setting streak: {e}")
+    
+    @admin_group.command(
+        name="setup_channels",
+        description="🚀 Auto-create all required channels for the bot"
+    )
+    @is_admin()
+    async def setup_channels_command(self, ctx: discord.ApplicationContext) -> None:
+        """Automatically create all required channels."""
+        await ctx.defer(ephemeral=True)
+        
+        try:
+            guild = ctx.guild
+            created_channels = []
+            
+            # Define channels to create
+            channels_to_create = [
+                {
+                    'name': '🤖-bot-state',
+                    'purpose': 'Bot state storage (DO NOT DELETE)',
+                    'type': 'STATE_CHANNEL_ID'
+                },
+                {
+                    'name': '📚-learning-logs',
+                    'purpose': 'Post your daily learning here',
+                    'type': 'LEARNING_CHANNEL_ID'
+                },
+                {
+                    'name': '📊-dashboard',
+                    'purpose': 'Live stats dashboard',
+                    'type': 'DASHBOARD_CHANNEL_ID'
+                },
+                {
+                    'name': '📅-daily-threads',
+                    'purpose': 'Daily learning threads for each user',
+                    'type': 'DAILY_THREADS_CHANNEL_ID'
+                }
+            ]
+            
+            setup_instructions = "**✅ Channels Created!**\n\n"
+            
+            for channel_info in channels_to_create:
+                # Check if channel already exists
+                existing = discord.utils.get(guild.text_channels, name=channel_info['name'])
+                
+                if existing:
+                    setup_instructions += f"• {existing.mention} - Already exists\n"
+                else:
+                    # Create channel
+                    new_channel = await guild.create_text_channel(
+                        name=channel_info['name'],
+                        topic=channel_info['purpose']
+                    )
+                    created_channels.append(new_channel)
+                    setup_instructions += f"• {new_channel.mention} - Created ✅\n"
+            
+            setup_instructions += f"\n**📋 Next Steps:**\n"
+            setup_instructions += "1. Add these channel IDs to your `.env` file:\n"
+            
+            for channel_info in channels_to_create:
+                channel = discord.utils.get(guild.text_channels, name=channel_info['name'])
+                if channel:
+                    setup_instructions += f"   `{channel_info['type']}={channel.id}`\n"
+            
+            setup_instructions += "\n2. Make sure `USER_IDS` is set in `.env`\n"
+            setup_instructions += "3. Restart the bot\n"
+            setup_instructions += "4. Run `/admin initialize_users`\n"
+            
+            embed = discord.Embed(
+                title="🚀 Bot Setup Complete",
+                description=setup_instructions,
+                color=discord.Color.green(),
+                timestamp=now()
+            )
+            
+            await ctx.respond(embed=embed, ephemeral=True)
+            logger.info(f"Admin {ctx.author.id} ran setup_channels, created {len(created_channels)} channels")
+            
+        except Exception as e:
+            await ctx.respond(f"❌ Error creating channels: {e}", ephemeral=True)
+            logger.error(f"Error in setup_channels: {e}", exc_info=True)
+    
+    @admin_group.command(
+        name="initialize_users",
+        description="Initialize tracking for all configured users"
+    )
+    @is_admin()
+    async def initialize_users_command(self, ctx: discord.ApplicationContext) -> None:
+        """Initialize user tracking."""
+        await ctx.defer(ephemeral=True)
+        
+        try:
+            initialized_count = 0
+            skipped_count = 0
+            
+            for user_id in config.USER_IDS:
+                existing = self.state.get_user(user_id)
+                
+                if existing:
+                    skipped_count += 1
+                    continue
+                
+                # Initialize user
+                await self.state.update_user(user_id, {
+                    "total_points": 0,
+                    "current_streak": 0,
+                    "best_streak": 0,
+                    "total_logs": 0,
+                    "concepts_learned": [],
+                    "message_history": [],
+                    "daily_thread_id": None,
+                    "last_log_date": None
+                })
+                
+                initialized_count += 1
+            
+            await ctx.respond(
+                f"✅ Initialized {initialized_count} users, skipped {skipped_count} existing users.",
+                ephemeral=True
+            )
+            
+            logger.info(f"Admin {ctx.author.id} initialized {initialized_count} users")
+            
+        except Exception as e:
+            await ctx.respond(f"❌ Error initializing users: {e}", ephemeral=True)
+            logger.error(f"Error in initialize_users: {e}", exc_info=True)
+    
+    @admin_group.command(
+        name="export_data",
+        description="Export all bot data as JSON"
+    )
+    @is_admin()
+    async def export_data_command(self, ctx: discord.ApplicationContext) -> None:
+        """Export all data."""
+        await ctx.defer(ephemeral=True)
+        
+        try:
+            import json
+            from io import BytesIO
+            
+            # Get full state
+            full_state = self.state._state
+            
+            # Convert to JSON
+            json_data = safe_json_dumps(full_state, indent=2)
+            
+            # Create file
+            file_data = BytesIO(json_data.encode('utf-8'))
+            file_name = f"bot_data_export_{today()}.json"
+            
+            discord_file = discord.File(file_data, filename=file_name)
+            
+            await ctx.respond(
+                "📦 Here's your data export:",
+                file=discord_file,
+                ephemeral=True
+            )
+            
+            logger.info(f"Admin {ctx.author.id} exported data")
+            
+        except Exception as e:
+            await ctx.respond(f"❌ Error exporting data: {e}", ephemeral=True)
+            logger.error(f"Error in export_data: {e}", exc_info=True)
 
 
 def setup(bot: discord.Bot) -> None:

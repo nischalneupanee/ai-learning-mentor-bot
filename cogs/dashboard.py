@@ -212,8 +212,8 @@ class DashboardCog(commands.Cog):
                 for b in badges[:5]
             ) or "None"
             
-            # Build pathway status
-            pathway_status = f"{current_milestone['emoji']} **{current_milestone['name']}**"
+            # Build pathway status (name already includes emoji like "🌱 Foundations")
+            pathway_status = f"**{current_milestone['name']}**"
             if next_milestone:
                 points_needed = next_milestone["points_range"][0] - points
                 pathway_status += f"\n[{progress_bar}] {progress_pct:.0f}%"

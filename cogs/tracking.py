@@ -233,6 +233,12 @@ class TrackingCog(commands.Cog):
         """Wait for bot to be ready."""
         try:
             await self.bot.wait_until_ready()
+            # Small delay to let state initialize
+            await asyncio.sleep(3)
+            logger.info("Creating initial daily threads...")
+            # Create threads immediately on startup
+            await self._ensure_daily_threads()
+            logger.info("Initial daily threads created")
         except Exception as e:
             logger.error(f"Error in daily thread before_loop: {e}", exc_info=True)
         await self.bot.wait_until_ready()
@@ -240,20 +246,25 @@ class TrackingCog(commands.Cog):
     async def _ensure_daily_threads(self) -> None:
         """Ensure each user has a daily thread for today."""
         try:
+            logger.debug("Ensuring daily threads...")
             channel = self.bot.get_channel(config.DAILY_THREADS_CHANNEL_ID)
             if not channel:
+                logger.debug(f"Fetching channel {config.DAILY_THREADS_CHANNEL_ID}...")
                 channel = await self.bot.fetch_channel(config.DAILY_THREADS_CHANNEL_ID)
             
             if not channel:
-                logger.error("Daily threads channel not found")
+                logger.error(f"Daily threads channel {config.DAILY_THREADS_CHANNEL_ID} not found")
                 return
             
             thread_name = get_daily_thread_name()
             current_date = today()
+            logger.debug(f"Thread name: {thread_name}, Date: {current_date}")
             
             for user_id in config.USER_IDS:
+                logger.debug(f"Checking thread for user {user_id}...")
                 user = self.state.get_user(user_id)
                 if not user:
+                    logger.warning(f"User {user_id} not found in state")
                     continue
                 
                 # Check if we need a new thread
@@ -261,6 +272,7 @@ class TrackingCog(commands.Cog):
                 need_new_thread = True
                 
                 if existing_thread_id:
+                    logger.debug(f"Found existing thread ID {existing_thread_id} for user {user_id}")
                     try:
                         existing_thread = self.bot.get_channel(existing_thread_id)
                         if not existing_thread:
@@ -269,14 +281,18 @@ class TrackingCog(commands.Cog):
                         # Check if thread is for today
                         if existing_thread and thread_name in existing_thread.name:
                             need_new_thread = False
-                    except:
-                        pass
+                            logger.debug(f"Thread {existing_thread_id} is still valid for today")
+                    except Exception as e:
+                        logger.debug(f"Error checking existing thread: {e}")
                 
                 if need_new_thread:
+                    logger.info(f"Creating new thread for user {user_id}")
                     await self._create_daily_thread(channel, user_id, user.get("username", f"User {user_id}"))
+                else:
+                    logger.debug(f"User {user_id} already has valid thread for today")
         
         except Exception as e:
-            logger.error(f"Error in daily thread task: {e}")
+            logger.error(f"Error in _ensure_daily_threads: {e}", exc_info=True)
     
     async def _create_daily_thread(
         self,
@@ -287,6 +303,7 @@ class TrackingCog(commands.Cog):
         """Create a daily thread for a user."""
         try:
             thread_name = f"{get_daily_thread_name()} - {username}"
+            logger.info(f"Creating thread: {thread_name}")
             
             # Create thread
             thread = await channel.create_thread(
@@ -295,8 +312,11 @@ class TrackingCog(commands.Cog):
                 auto_archive_duration=1440  # 24 hours
             )
             
+            logger.info(f"Thread created with ID {thread.id}")
+            
             # Store thread ID
             await self.state.set_daily_thread(user_id, thread.id)
+            logger.debug(f"Stored thread ID for user {user_id}")
             
             # Send welcome message
             user = await self.bot.fetch_user(user_id)

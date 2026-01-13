@@ -71,8 +71,10 @@ class DashboardCog(commands.Cog):
             await self.bot.wait_until_ready()
             # Initial delay to let state load
             await asyncio.sleep(5)
+            logger.info("Creating initial dashboard...")
             # Create initial dashboard
             await self._update_dashboard()
+            logger.info("Initial dashboard created successfully")
         except Exception as e:
             logger.error(f"Error in dashboard before_loop: {e}", exc_info=True)
     
@@ -102,14 +104,17 @@ class DashboardCog(commands.Cog):
     async def _update_dashboard(self) -> None:
         """Update the persistent dashboard embed."""
         try:
+            logger.debug("Starting dashboard update...")
             channel = self.bot.get_channel(config.DASHBOARD_CHANNEL_ID)
             if not channel:
+                logger.debug(f"Fetching channel {config.DASHBOARD_CHANNEL_ID}...")
                 channel = await self.bot.fetch_channel(config.DASHBOARD_CHANNEL_ID)
             
             if not channel:
-                logger.error("Dashboard channel not found")
+                logger.error(f"Dashboard channel {config.DASHBOARD_CHANNEL_ID} not found")
                 return
             
+            logger.debug("Creating dashboard embed...")
             embed = await self._create_dashboard_embed()
             
             # Find or create dashboard message
@@ -117,26 +122,32 @@ class DashboardCog(commands.Cog):
                 try:
                     message = await channel.fetch_message(self._dashboard_message_id)
                     await message.edit(embed=embed)
+                    logger.debug("Updated existing dashboard message")
                     return
                 except discord.NotFound:
+                    logger.debug("Dashboard message not found, will create new one")
                     self._dashboard_message_id = None
             
             # Look for existing pinned dashboard
+            logger.debug("Checking for existing pinned dashboard...")
             pins = await channel.pins()
             for pin in pins:
                 if pin.author.id == self.bot.user.id and pin.embeds:
                     if "Learning Dashboard" in pin.embeds[0].title:
                         self._dashboard_message_id = pin.id
                         await pin.edit(embed=embed)
+                        logger.info(f"Updated existing pinned dashboard {pin.id}")
                         return
             
             # Create new dashboard
+            logger.info("Creating new dashboard message...")
             message = await channel.send(embed=embed)
             await message.pin()
             self._dashboard_message_id = message.id
+            logger.info(f"Created and pinned new dashboard message {message.id}")
             
         except Exception as e:
-            logger.error(f"Error updating dashboard: {e}")
+            logger.error(f"Error updating dashboard: {e}", exc_info=True)
     
     async def _create_dashboard_embed(self) -> discord.Embed:
         """Create the main dashboard embed."""

@@ -6,7 +6,39 @@
 
 A production-ready Discord bot that acts as an AI-powered learning mentor for tracking and improving your AI/ML/DL/Data Science learning journey.
 
-## ✨ Features
+**NEW in v2.0:** 8+ user commands, auto-setup, AI daily plans, career pathways, deep insights! 🚀
+
+## ✨ What's New in Version 2.0
+
+### 🎯 8+ New User Commands
+- `/help` - Complete command reference
+- `/stats` - Detailed learning statistics
+- `/progress` - Career pathway visualization
+- `/todayplan` - AI-generated daily study plans
+- `/insights` - Deep AI pattern analysis
+- `/streak` - Streak status with motivation
+- `/concepts` - All learned concepts
+- `/leaderboard` - Global rankings
+
+### 🚀 Auto-Setup for Admins
+- `/admin setup_channels` - One command creates ALL channels!
+- `/admin initialize_users` - Initialize tracking instantly
+- `/admin export_data` - Full data export
+- No more manual Discord configuration
+
+### 🎓 Career Pathway System
+- 4 clear progression stages (Foundation → Research Expert)
+- Visual progress bars everywhere
+- Level-specific recommendations
+- Milestone tracking and rewards
+
+### 🤖 Enhanced AI Features
+- Personalized daily study plans
+- Deep learning pattern analysis
+- Context-aware recommendations
+- Smarter question answering
+
+## 📚 Complete Feature Set
 
 ### 📊 Discord-Native Architecture
 - **Zero external databases** - All state stored in Discord itself
@@ -25,19 +57,29 @@ A production-ready Discord bot that acts as an AI-powered learning mentor for tr
 - Grace period until 3 AM
 - Streak health indicators (safe/at-risk/broken)
 - Smart, non-spam reminders
+- Milestone celebrations (7, 14, 30, 50, 100 days)
 
-### 🎮 Gamification
+### 🎮 Gamification & Career Progression
 - **Points system** with base + depth bonuses
-- **Skill levels**: Beginner → Intermediate → Advanced → Researcher
-- **Badges** for milestones and achievements
-- **Competitive leaderboard**
+- **Career Pathway**: Foundation → Intermediate → Advanced → Research Expert
+- **Skill levels** with clear milestones
+- **Visual progress bars** in all commands
+- **Competitive leaderboard** with rankings
 
 ### 🧠 AI-Powered Insights
 - Daily evaluations with Google Gemini
-- Split Analyzer + Mentor prompts
+- Personalized study plan generation
+- Deep pattern analysis of learning habits
 - Confidence-weighted feedback
 - Weekly AI mentor summaries
-- Personalized goal trajectories
+- Context-aware question answering
+
+### 💬 Interactive Features
+- Personal daily threads for each learner
+- AI mentor Q&A in threads (`/ask` command)
+- Auto-detection of questions
+- Real-time dashboard updates
+- Motivational notifications
 
 ## 🚀 Quick Start
 
@@ -49,6 +91,12 @@ A production-ready Discord bot that acts as an AI-powered learning mentor for tr
 2. Sign in with GitHub and select this repository
 3. Add environment variables (see `.env.example`)
 4. Deploy! ✨
+5. **In Discord, run:** `/admin setup_channels` to auto-create all channels
+6. Update Railway env vars with channel IDs
+7. Restart bot and run `/admin initialize_users`
+8. Done! Use `/help` to see all commands
+
+**📖 Detailed Setup:** See [QUICK_SETUP.md](QUICK_SETUP.md)
 
 ### Local Development
 
@@ -61,7 +109,7 @@ A production-ready Discord bot that acts as an AI-powered learning mentor for tr
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/ai-learning-mentor-bot.git
+   git clone https://github.com/nischalneupanee/ai-learning-mentor-bot.git
    cd ai-learning-mentor-bot
    ```
 
@@ -120,32 +168,47 @@ A production-ready Discord bot that acts as an AI-powered learning mentor for tr
 
 ## 📝 Slash Commands
 
-### User Commands
-| Command | Description |
-|---------|-------------|
-| `/stats` | View personal statistics |
-| `/streak` | Check streak status and health |
-| `/leaderboard` | View competitive rankings |
-| `/goal` | Get AI-generated learning trajectory |
-| `/summary` | Weekly AI mentor report |
-| `/badges` | View badge collection |
-| `/export` | Export logs as text file |
+### 👤 User Commands
 
-### Admin Commands
 | Command | Description |
 |---------|-------------|
-| `/admin health` | Check bot health status |
-| `/admin reset_day` | Reset daily flags |
-| `/admin recalculate_stats` | Recalculate user stats |
-| `/admin force_evaluate` | Force run evaluation |
+| `/help` | Complete command reference with examples |
+| `/mystatus` | AI-generated comprehensive status report |
+| `/ask <question>` | Ask AI mentor anything |
+| `/stats` | View detailed learning statistics |
+| `/progress` | Career pathway progress with milestones |
+| `/todayplan` | AI-generated personalized daily study plan |
+| `/insights` | Deep AI analysis of learning patterns |
+| `/streak` | Streak status with motivation |
+| `/concepts` | All learned concepts with frequency |
+| `/leaderboard` | Global rankings with levels |
+
+### 🛡️ Admin Commands
+
+#### Setup & Management
+| Command | Description |
+|---------|-------------|
+| `/admin setup_channels` | ⭐ Auto-create all required channels |
+| `/admin initialize_users` | Initialize user tracking |
+| `/admin health` | Complete system health check |
 | `/admin backup_state` | Create state backup |
+| `/admin export_data` | Export all data as JSON |
+
+#### User Management
+| Command | Description |
+|---------|-------------|
+| `/admin recalculate_stats` | Recalculate user stats from history |
+| `/admin force_evaluate` | Force run AI evaluation |
+| `/admin reset_day` | Reset daily flags |
+| `/admin set_points` | Manually adjust user points |
+| `/admin set_streak` | Manually set user streak |
+
+#### Testing
+| Command | Description |
+|---------|-------------|
 | `/admin simulate_day` | Test evaluation with custom logs |
-| `/admin set_role` | Set user skill level |
-| `/admin view_state` | View raw state JSON |
-| `/admin cleanup` | Clean old daily flags |
-| `/admin award_badge` | Manually award badge |
-| `/admin set_points` | Set user points |
-| `/admin set_streak` | Set user streak |
+
+**📖 Full Command Documentation:** See [COMMANDS.md](COMMANDS.md) and [COMMAND_GUIDE.md](COMMAND_GUIDE.md)
 
 ## 📦 State Structure
 
@@ -198,14 +261,20 @@ The bot stores all state in a pinned embed's description as compressed JSON:
 | 🌟 Renaissance Mind | Cover all 4 domains |
 | ⚡ Consistency King | 10 consecutive high-quality days |
 
-## 🏆 Skill Levels
+## 🏆 Career Pathway Levels
 
-| Level | Name | Required Points |
-|-------|------|-----------------|
-| 0 | 🌱 Beginner | 0 |
-| 1 | 📚 Intermediate | 500 |
-| 2 | 🚀 Advanced | 2000 |
-| 3 | 🎓 Researcher | 5000 |
+| Level | Name | Points Required | Focus Areas |
+|-------|------|----------------|-------------|
+| 0 | 🌱 Foundation | 0-500 | Python basics, Math fundamentals, First ML models |
+| 1 | 🌿 Intermediate | 500-2,000 | Advanced algorithms, Deep learning, Optimization |
+| 2 | 🌳 Advanced | 2,000-5,000 | Research papers, Custom architectures, Production |
+| 3 | 🎯 Research Expert | 5,000+ | Novel research, Publications, Contributions |
+
+Each level provides:
+- Specific learning recommendations
+- Milestone celebrations
+- Visual progress tracking
+- AI-personalized study plans
 
 ## 🔒 Permissions Checklist
 
@@ -221,7 +290,17 @@ The bot requires these Discord permissions:
 - ✅ Create Public Threads
 - ✅ Send Messages in Threads
 - ✅ Manage Threads
-- ✅ Manage Roles (for skill level roles)
+- ✅ **Manage Channels** (for `/admin setup_channels`)
+
+**Easy Setup:** Use `/admin setup_channels` to auto-create all channels with proper settings!
+
+## 📖 Documentation
+
+- **[QUICK_SETUP.md](QUICK_SETUP.md)** - Step-by-step setup guide
+- **[COMMANDS.md](COMMANDS.md)** - Complete command reference with examples
+- **[COMMAND_GUIDE.md](COMMAND_GUIDE.md)** - Detailed command explanations
+- **[CHEAT_SHEET.md](CHEAT_SHEET.md)** - Quick reference card
+- **[WHATS_NEW.md](WHATS_NEW.md)** - Version 2.0 features and improvements
 
 ## 🖥️ Running as a Service
 

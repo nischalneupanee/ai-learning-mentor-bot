@@ -37,15 +37,14 @@ class DashboardCog(commands.Cog):
         self.state = state_manager
         self.evaluator = evaluator
         self._dashboard_message_id: Optional[int] = None
-    
-    def cog_load(self) -> None:
-        """Called when cog is loaded."""
+        
+        # Start tasks immediately
         try:
             self.dashboard_refresh_task.start()
             self.daily_evaluation_task.start()
-            logger.info("Dashboard cog loaded, tasks started")
+            logger.info("DashboardCog: Tasks started in __init__")
         except Exception as e:
-            logger.error(f"Error starting dashboard tasks: {e}")
+            logger.error(f"DashboardCog: Error starting tasks: {e}", exc_info=True)
     
     def cog_unload(self) -> None:
         """Called when cog is unloaded."""

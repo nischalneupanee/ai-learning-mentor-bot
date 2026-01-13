@@ -47,16 +47,15 @@ class TrackingCog(commands.Cog):
         self.mentor = init_interactive_mentor(state_manager)
         self._recent_messages: dict[int, list[str]] = {}  # user_id -> recent contents
         self._reminder_sent: dict[int, str] = {}  # user_id -> date of last reminder
-    
-    def cog_load(self) -> None:
-        """Called when cog is loaded."""
+        
+        # Start tasks immediately
         try:
             self.daily_thread_task.start()
             self.streak_check_task.start()
             self.reminder_task.start()
-            logger.info("Tracking cog loaded, tasks started")
+            logger.info("TrackingCog: Tasks started in __init__")
         except Exception as e:
-            logger.error(f"Error starting tracking tasks: {e}")
+            logger.error(f"TrackingCog: Error starting tasks: {e}", exc_info=True)
     
     def cog_unload(self) -> None:
         """Called when cog is unloaded."""

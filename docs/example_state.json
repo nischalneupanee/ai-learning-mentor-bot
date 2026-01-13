@@ -1,0 +1,177 @@
+{
+  "state_version": 2,
+  "last_updated": "2026-01-12 14:30:00",
+  "bot_metadata": {
+    "version": "1.0.0",
+    "started_at": "2026-01-01 08:00:00",
+    "total_evaluations": 42
+  },
+  "users": {
+    "123456789012345678": {
+      "user_id": 123456789012345678,
+      "username": "learner_one",
+      "points": 1850,
+      "streak": 14,
+      "max_streak": 21,
+      "last_log_date": "2026-01-12",
+      "streak_health": "safe",
+      "skill_level": 1,
+      "days_active": 28,
+      "total_logs": 156,
+      "badges": ["first_log", "streak_7", "streak_14"],
+      "concept_frequency": {
+        "neural network": 12,
+        "gradient descent": 8,
+        "backpropagation": 6,
+        "transformer": 5,
+        "attention mechanism": 4,
+        "cnn": 7,
+        "lstm": 3,
+        "feature engineering": 4,
+        "cross-validation": 3,
+        "overfitting": 5
+      },
+      "topic_coverage": {
+        "AI": 15,
+        "ML": 42,
+        "DL": 35,
+        "DS": 18
+      },
+      "weekly_scores": [7.2, 8.1, 7.5, 8.8],
+      "last_evaluation": {
+        "date": "2026-01-12",
+        "analysis": {
+          "primary_focus": "DL",
+          "concepts_detected": ["transformer", "attention mechanism", "self-attention"],
+          "depth_score": 8,
+          "confidence": 0.85
+        },
+        "mentor_feedback": {
+          "consistency_score": 9,
+          "mastery_progress_percent": 45,
+          "mentor_feedback": "Excellent deep dive into transformers today! Your understanding of attention mechanisms is growing strong.",
+          "next_day_focus": "Try implementing a simple transformer from scratch",
+          "streak_health": "safe"
+        },
+        "points_earned": 45
+      },
+      "evaluation_count": 24,
+      "created_at": "2025-12-15 10:00:00",
+      "daily_thread_id": 987654321098765432
+    },
+    "234567890123456789": {
+      "user_id": 234567890123456789,
+      "username": "learner_two",
+      "points": 2450,
+      "streak": 7,
+      "max_streak": 35,
+      "last_log_date": "2026-01-12",
+      "streak_health": "safe",
+      "skill_level": 2,
+      "days_active": 45,
+      "total_logs": 210,
+      "badges": ["first_log", "streak_7", "streak_30", "all_topics"],
+      "concept_frequency": {
+        "machine learning": 15,
+        "decision tree": 8,
+        "random forest": 10,
+        "gradient boosting": 7,
+        "feature selection": 6,
+        "hyperparameter tuning": 5,
+        "neural network": 9,
+        "deep learning": 8,
+        "data preprocessing": 12,
+        "exploratory data analysis": 9
+      },
+      "topic_coverage": {
+        "AI": 22,
+        "ML": 68,
+        "DL": 42,
+        "DS": 55
+      },
+      "weekly_scores": [7.8, 8.5, 9.1, 8.2],
+      "last_evaluation": {
+        "date": "2026-01-12",
+        "analysis": {
+          "primary_focus": "ML",
+          "concepts_detected": ["ensemble methods", "gradient boosting", "xgboost"],
+          "depth_score": 9,
+          "confidence": 0.92
+        },
+        "mentor_feedback": {
+          "consistency_score": 8,
+          "mastery_progress_percent": 62,
+          "mentor_feedback": "Your exploration of ensemble methods shows great depth. The XGBoost analysis was particularly thorough.",
+          "next_day_focus": "Compare XGBoost vs LightGBM performance characteristics",
+          "streak_health": "safe"
+        },
+        "points_earned": 55
+      },
+      "evaluation_count": 38,
+      "created_at": "2025-11-28 09:30:00",
+      "daily_thread_id": 876543210987654321
+    }
+  },
+  "daily_flags": {
+    "2026-01-12": {
+      "123456789012345678": {
+        "evaluated": true,
+        "reminded": false
+      },
+      "234567890123456789": {
+        "evaluated": true,
+        "reminded": false
+      }
+    },
+    "2026-01-11": {
+      "123456789012345678": {
+        "evaluated": true
+      },
+      "234567890123456789": {
+        "evaluated": true
+      }
+    }
+  },
+  "evaluation_cache": {
+    "123456789012345678": {
+      "2026-01-12": {
+        "analysis": {
+          "primary_focus": "DL",
+          "concepts_detected": ["transformer", "attention mechanism"],
+          "depth_score": 8,
+          "confidence": 0.85
+        },
+        "points_earned": 45
+      },
+      "2026-01-11": {
+        "analysis": {
+          "primary_focus": "ML",
+          "concepts_detected": ["linear regression", "feature scaling"],
+          "depth_score": 7,
+          "confidence": 0.78
+        },
+        "points_earned": 35
+      }
+    },
+    "234567890123456789": {
+      "2026-01-12": {
+        "analysis": {
+          "primary_focus": "ML",
+          "concepts_detected": ["ensemble methods", "gradient boosting"],
+          "depth_score": 9,
+          "confidence": 0.92
+        },
+        "points_earned": 55
+      },
+      "2026-01-11": {
+        "analysis": {
+          "primary_focus": "DS",
+          "concepts_detected": ["eda", "data visualization"],
+          "depth_score": 6,
+          "confidence": 0.80
+        },
+        "points_earned": 30
+      }
+    }
+  }
+}

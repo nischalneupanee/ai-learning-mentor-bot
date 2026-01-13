@@ -1,0 +1,17 @@
+# AI Learning Mentor Bot - Dependencies
+# Python 3.11+
+
+# Discord
+py-cord>=2.5.0
+
+# Async HTTP
+aiohttp>=3.9.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Timezone handling
+pytz>=2024.1
+
+# Type hints (development)
+typing-extensions>=4.9.0

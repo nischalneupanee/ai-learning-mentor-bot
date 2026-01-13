@@ -1,0 +1,27 @@
+[Unit]
+Description=AI Learning Mentor Discord Bot
+After=network.target
+
+[Service]
+Type=simple
+User=your_username
+Group=your_username
+WorkingDirectory=/path/to/study-bot
+ExecStart=/path/to/study-bot/venv/bin/python bot.py
+Restart=always
+RestartSec=10
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=learning-mentor-bot
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

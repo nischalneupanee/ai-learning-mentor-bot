@@ -11,6 +11,7 @@ from typing import Optional
 from config import config
 from services.discord_state import DiscordStateManager
 from services.evaluator import Evaluator
+from services.career_pathway import get_progress_summary, get_milestone_for_points
 from utils import (
     now,
     today,
@@ -59,7 +60,9 @@ class DashboardCog(commands.Cog):
         """Wait for bot to be ready."""
         await self.bot.wait_until_ready()
         # Initial delay to let state load
-        await asyncio.sleep(10)
+        await asyncio.sleep(5)
+        # Create initial dashboard
+        await self._update_dashboard()
     
     @tasks.loop(hours=1)
     async def daily_evaluation_task(self) -> None:
@@ -123,13 +126,18 @@ class DashboardCog(commands.Cog):
     async def _create_dashboard_embed(self) -> discord.Embed:
         """Create the main dashboard embed."""
         embed = discord.Embed(
-            title="📊 Learning Dashboard",
-            description="Real-time progress tracking for your AI/ML learning journey",
+            title="📊 AI/ML Learning Dashboard",
+            description="🎯 **Goal:** AI/ML Engineer & Researcher\n*Track your journey to mastery*",
             color=discord.Color.blue(),
             timestamp=now()
         )
         
         users = self.state.get_all_users()
+        
+        if not users:
+            embed.description = "No user data yet. Start logging your learning!"
+            embed.set_footer(text="Auto-refreshes every 5 minutes")
+            return embed
         
         for user_data in users:
             user_id = user_data.get("user_id")
@@ -150,12 +158,21 @@ class DashboardCog(commands.Cog):
             skill_level = user_data.get("skill_level", 0)
             health = user_data.get("streak_health", "safe")
             
+            # Get career pathway info
+            progress = get_progress_summary(user_data)
+            current_milestone = progress["current_milestone"]
+            next_milestone = progress["next_milestone"]
+            
             level_info = config.SKILL_LEVELS.get(skill_level, {})
             level_emoji = level_info.get("emoji", "🌱")
             level_name = level_info.get("name", "Beginner")
             
             health_emoji = {"safe": "🟢", "at-risk": "🟡", "broken": "🔴"}.get(health, "⚪")
             streak_emoji = get_streak_status_emoji(streak)
+            
+            # Create progress bar for career pathway
+            progress_pct = progress["progress_percentage"]
+            progress_bar = "█" * int(progress_pct // 10) + "░" * (10 - int(progress_pct // 10))
             
             # Topic coverage
             coverage = user_data.get("topic_coverage", {})
@@ -170,12 +187,22 @@ class DashboardCog(commands.Cog):
                 for b in badges[:5]
             ) or "None"
             
+            # Build pathway status
+            pathway_status = f"{current_milestone['emoji']} **{current_milestone['name']}**"
+            if next_milestone:
+                points_needed = next_milestone["points_range"][0] - points
+                pathway_status += f"\n[{progress_bar}] {progress_pct:.0f}%"
+                pathway_status += f"\n{points_needed:,} pts → {next_milestone['name']}"
+            else:
+                pathway_status += "\n✨ Maximum level achieved!"
+            
             # Create user section
             user_stats = (
-                f"{level_emoji} **{level_name}** | {health_emoji} Streak: {streak_emoji} **{streak}** days\n"
-                f"💰 **{points:,}** pts | 📝 **{total_logs}** logs | 📅 **{days_active}** days\n"
+                f"🎖️ {level_emoji} **{level_name}** | {health_emoji} Streak: {streak_emoji} **{streak}** days (best: {max_streak})\n"
+                f"💰 **{points:,}** pts | 📝 **{total_logs}** logs | 📅 **{days_active}** days active\n\n"
+                f"**Career Path Progress:**\n{pathway_status}\n\n"
                 f"📚 Topics: {coverage_str}\n"
-                f"🏆 {badge_str}"
+                f"🏆 Badges: {badge_str}"
             )
             
             embed.add_field(
@@ -184,8 +211,15 @@ class DashboardCog(commands.Cog):
                 inline=False
             )
         
+        # Add general info
+        embed.add_field(
+            name="💡 Quick Commands",
+            value="`/stats` • `/ask` • `/mystatus` • `/streak` • `/leaderboard`",
+            inline=False
+        )
+        
         # Add last update time
-        embed.set_footer(text=f"Auto-refreshes every {config.DASHBOARD_REFRESH_SECONDS // 60} minutes | Last update")
+        embed.set_footer(text=f"Auto-refreshes every {config.DASHBOARD_REFRESH_SECONDS // 60} min | Last update")
         
         return embed
     

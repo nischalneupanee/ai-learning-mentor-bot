@@ -13,6 +13,7 @@ from typing import Optional
 from config import config
 from services.discord_state import DiscordStateManager
 from services.evaluator import Evaluator
+from services.interactive_mentor import init_interactive_mentor
 from utils import (
     analyze_message,
     get_effective_date,
@@ -43,6 +44,7 @@ class TrackingCog(commands.Cog):
         self.bot = bot
         self.state = state_manager
         self.evaluator = evaluator
+        self.mentor = init_interactive_mentor(state_manager)
         self._recent_messages: dict[int, list[str]] = {}  # user_id -> recent contents
         self._reminder_sent: dict[int, str] = {}  # user_id -> date of last reminder
     
@@ -62,7 +64,7 @@ class TrackingCog(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        """Listen for learning log messages."""
+        """Listen for learning log messages and mentor questions."""
         # Ignore bots
         if message.author.bot:
             return
@@ -70,6 +72,13 @@ class TrackingCog(commands.Cog):
         # Check if user is tracked
         if message.author.id not in config.USER_IDS:
             return
+        
+        # Check if it's a question for the mentor in daily thread
+        if isinstance(message.channel, discord.Thread):
+            if message.channel.parent_id == config.DAILY_THREADS_CHANNEL_ID:
+                # Check if it's a question (contains ?)
+                if await self._handle_mentor_question(message):
+                    return  # Don't process as learning log if it's a question
         
         # Check if in valid channel
         valid_channels = [config.LEARNING_CHANNEL_ID]
@@ -91,6 +100,37 @@ class TrackingCog(commands.Cog):
         
         # Process the message
         await self._process_learning_message(message)
+    
+    async def _handle_mentor_question(self, message: discord.Message) -> bool:
+        """
+        Handle questions to the AI mentor in daily threads.
+        Returns True if message was handled as a question.
+        """
+        content = message.content.strip().lower()
+        
+        # Keywords that indicate a question to the mentor
+        question_keywords = [
+            "what should i", "how can i", "what is my", "should i",
+            "recommend", "suggest", "help me", "what's next",
+            "am i doing", "my progress", "my status", "how am i"
+        ]
+        
+        # Check if it's a question
+        is_question = "?" in content or any(keyword in content for keyword in question_keywords)
+        
+        if is_question and len(content) > 10:  # Meaningful question
+            # Show typing indicator
+            async with message.channel.typing():
+                response = await self.mentor.answer_question(
+                    message.author.id,
+                    message.content
+                )
+                
+                if response:
+                    await message.reply(f"🤖 **AI Mentor:**\n\n{response}", mention_author=False)
+                    return True
+        
+        return False
     
     async def _process_learning_message(self, message: discord.Message) -> None:
         """Process a potential learning log message."""
@@ -486,6 +526,111 @@ class TrackingCog(commands.Cog):
                     inline=True
                 )
                 break
+        
+        await ctx.respond(embed=embed)
+    
+    @discord.slash_command(
+        name="ask",
+        description="Ask your AI mentor anything about your learning journey"
+    )
+    async def ask_command(
+        self,
+        ctx: discord.ApplicationContext,
+        question: discord.Option(
+            str,
+            description="Your question for the AI mentor",
+            required=True
+        )
+    ) -> None:
+        """Ask the AI mentor a question."""
+        if ctx.author.id not in config.USER_IDS:
+            await ctx.respond("❌ You're not a tracked user.", ephemeral=True)
+            return
+        
+        await ctx.defer()
+        
+        # Get AI response
+        response = await self.mentor.answer_question(ctx.author.id, question)
+        
+        embed = discord.Embed(
+            title="🤖 AI Learning Mentor",
+            description=response,
+            color=discord.Color.blue(),
+            timestamp=now()
+        )
+        
+        embed.set_footer(text=f"Question from {ctx.author.display_name}")
+        
+        await ctx.respond(embed=embed)
+    
+    @discord.slash_command(
+        name="mystatus",
+        description="Get a comprehensive AI-generated status report"
+    )
+    async def mystatus_command(self, ctx: discord.ApplicationContext) -> None:
+        """Get detailed status report with AI analysis."""
+        if ctx.author.id not in config.USER_IDS:
+            await ctx.respond("❌ You're not a tracked user.", ephemeral=True)
+            return
+        
+        await ctx.defer()
+        
+        # Get status report from AI
+        status = await self.mentor.get_status_report(ctx.author.id)
+        
+        if "error" in status:
+            await ctx.respond(f"❌ {status['error']}")
+            return
+        
+        # Create embed
+        embed = discord.Embed(
+            title="📊 Your Learning Status Report",
+            description=status.get("overall_status", "No summary available"),
+            color=discord.Color.green(),
+            timestamp=now()
+        )
+        
+        # Add strengths
+        if status.get("strengths"):
+            embed.add_field(
+                name="💪 Strengths",
+                value="\n".join(f"• {s}" for s in status["strengths"]),
+                inline=False
+            )
+        
+        # Add areas to improve
+        if status.get("areas_to_improve"):
+            embed.add_field(
+                name="📈 Areas to Improve",
+                value="\n".join(f"• {a}" for a in status["areas_to_improve"]),
+                inline=False
+            )
+        
+        # Add next steps
+        if status.get("next_immediate_steps"):
+            embed.add_field(
+                name="🎯 Next Steps",
+                value="\n".join(f"{i+1}. {s}" for i, s in enumerate(status["next_immediate_steps"])),
+                inline=False
+            )
+        
+        # Add pathway progress
+        if "progress" in status:
+            progress = status["progress"]
+            current = progress["current_milestone"]
+            embed.add_field(
+                name="🗺️ Career Pathway",
+                value=f"{current['name']} ({progress['progress_percentage']:.0f}%)",
+                inline=True
+            )
+        
+        # Add motivation
+        if status.get("motivation_message"):
+            embed.add_field(
+                name="✨ Keep Going!",
+                value=status["motivation_message"],
+                inline=False
+            )
         
         await ctx.respond(embed=embed)
     

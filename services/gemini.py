@@ -184,6 +184,28 @@ class GeminiService:
                 logger.error(f"Unexpected error calling Gemini: {e}")
                 raise GeminiError(f"Unexpected error: {e}")
     
+    async def generate_text(
+        self,
+        prompt: str,
+        temperature: float = 0.7,
+        max_tokens: int = 1024
+    ) -> Optional[str]:
+        """
+        Generate text using Gemini (public method for general use).
+        
+        Args:
+            prompt: The prompt text
+            temperature: Controls randomness (0-1)
+            max_tokens: Maximum response length
+        
+        Returns:
+            Generated text or None on failure
+        """
+        try:
+            return await self._call_gemini(prompt, temperature, max_tokens)
+        except GeminiError:
+            return None
+    
     async def analyze_logs(
         self,
         user_id: int,

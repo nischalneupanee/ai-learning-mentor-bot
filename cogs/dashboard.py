@@ -40,44 +40,59 @@ class DashboardCog(commands.Cog):
     
     def cog_load(self) -> None:
         """Called when cog is loaded."""
-        self.dashboard_refresh_task.start()
-        self.daily_evaluation_task.start()
-        logger.info("Dashboard cog loaded, tasks started")
+        try:
+            self.dashboard_refresh_task.start()
+            self.daily_evaluation_task.start()
+            logger.info("Dashboard cog loaded, tasks started")
+        except Exception as e:
+            logger.error(f"Error starting dashboard tasks: {e}")
     
     def cog_unload(self) -> None:
         """Called when cog is unloaded."""
-        self.dashboard_refresh_task.cancel()
-        self.daily_evaluation_task.cancel()
-        logger.info("Dashboard cog unloaded, tasks cancelled")
+        try:
+            self.dashboard_refresh_task.cancel()
+            self.daily_evaluation_task.cancel()
+            logger.info("Dashboard cog unloaded, tasks cancelled")
+        except Exception as e:
+            logger.error(f"Error stopping dashboard tasks: {e}")
     
     @tasks.loop(seconds=config.DASHBOARD_REFRESH_SECONDS)
     async def dashboard_refresh_task(self) -> None:
         """Periodically refresh the dashboard."""
-        await self._update_dashboard()
+        try:
+            await self._update_dashboard()
+        except Exception as e:
+            logger.error(f"Error in dashboard refresh task: {e}", exc_info=True)
     
     @dashboard_refresh_task.before_loop
     async def before_dashboard_refresh(self) -> None:
         """Wait for bot to be ready."""
-        await self.bot.wait_until_ready()
-        # Initial delay to let state load
-        await asyncio.sleep(5)
-        # Create initial dashboard
-        await self._update_dashboard()
+        try:
+            await self.bot.wait_until_ready()
+            # Initial delay to let state load
+            await asyncio.sleep(5)
+            # Create initial dashboard
+            await self._update_dashboard()
+        except Exception as e:
+            logger.error(f"Error in dashboard before_loop: {e}", exc_info=True)
     
     @tasks.loop(hours=1)
     async def daily_evaluation_task(self) -> None:
         """Run daily evaluations for all users."""
-        # Check if it's around 11 PM (good time for daily summary)
-        current_hour = now().hour
-        
-        if current_hour == 23:  # 11 PM
-            for user_id in config.USER_IDS:
-                try:
-                    result = await self.evaluator.evaluate_user(user_id)
-                    if result:
-                        await self._post_evaluation(user_id, result)
-                except Exception as e:
-                    logger.error(f"Error evaluating user {user_id}: {e}")
+        try:
+            # Check if it's around 11 PM (good time for daily summary)
+            current_hour = now().hour
+            
+            if current_hour == 23:  # 11 PM
+                for user_id in config.USER_IDS:
+                    try:
+                        result = await self.evaluator.evaluate_user(user_id)
+                        if result:
+                            await self._post_evaluation(user_id, result)
+                    except Exception as e:
+                        logger.error(f"Error evaluating user {user_id}: {e}")
+        except Exception as e:
+            logger.error(f"Error in daily evaluation task: {e}", exc_info=True)
     
     @daily_evaluation_task.before_loop
     async def before_daily_evaluation(self) -> None:

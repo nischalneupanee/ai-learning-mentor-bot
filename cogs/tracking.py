@@ -50,17 +50,23 @@ class TrackingCog(commands.Cog):
     
     def cog_load(self) -> None:
         """Called when cog is loaded."""
-        self.daily_thread_task.start()
-        self.streak_check_task.start()
-        self.reminder_task.start()
-        logger.info("Tracking cog loaded, tasks started")
+        try:
+            self.daily_thread_task.start()
+            self.streak_check_task.start()
+            self.reminder_task.start()
+            logger.info("Tracking cog loaded, tasks started")
+        except Exception as e:
+            logger.error(f"Error starting tracking tasks: {e}")
     
     def cog_unload(self) -> None:
         """Called when cog is unloaded."""
-        self.daily_thread_task.cancel()
-        self.streak_check_task.cancel()
-        self.reminder_task.cancel()
-        logger.info("Tracking cog unloaded, tasks cancelled")
+        try:
+            self.daily_thread_task.cancel()
+            self.streak_check_task.cancel()
+            self.reminder_task.cancel()
+            logger.info("Tracking cog unloaded, tasks cancelled")
+        except Exception as e:
+            logger.error(f"Error stopping tracking tasks: {e}")
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -217,11 +223,18 @@ class TrackingCog(commands.Cog):
     @tasks.loop(hours=1)
     async def daily_thread_task(self) -> None:
         """Create daily threads for users."""
-        await self._ensure_daily_threads()
+        try:
+            await self._ensure_daily_threads()
+        except Exception as e:
+            logger.error(f"Error in daily thread task: {e}", exc_info=True)
     
     @daily_thread_task.before_loop
     async def before_daily_thread_task(self) -> None:
         """Wait for bot to be ready."""
+        try:
+            await self.bot.wait_until_ready()
+        except Exception as e:
+            logger.error(f"Error in daily thread before_loop: {e}", exc_info=True)
         await self.bot.wait_until_ready()
     
     async def _ensure_daily_threads(self) -> None:

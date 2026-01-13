@@ -126,6 +126,16 @@ class DiscordStateManager:
             logger.warning(f"State validation errors: {errors}")
             # Merge with default to fix missing keys
             self._state = merge_dicts(DEFAULT_STATE.copy(), self._state)
+            logger.info("Fixed missing keys by merging with defaults")
+        
+        # Ensure critical keys exist
+        if "daily_flags" not in self._state:
+            self._state["daily_flags"] = {}
+            logger.info("Added missing daily_flags key")
+        
+        if "evaluation_cache" not in self._state:
+            self._state["evaluation_cache"] = {}
+            logger.info("Added missing evaluation_cache key")
         
         # Check version and migrate
         current_version = self._state.get("state_version", 1)
@@ -220,15 +230,23 @@ class DiscordStateManager:
         except Exception as e:
             logger.error(f"Failed to setup backup thread: {e}")
     
-    async def save(self, create_backup: bool = False) -> bool:
+    async def save(self, create_backup: bool = False, force: bool = False) -> bool:
         """
         Save current state to Discord.
         
         Args:
             create_backup: Whether to also save to backup thread
+            force: Force save even if within minimum interval
         """
         async with self._lock:
             try:
+                # Rate limit saves to prevent Discord API limits
+                if not force and self._last_save:
+                    time_since_save = (now() - self._last_save).total_seconds()
+                    if time_since_save < 30:  # Minimum 30 seconds between saves
+                        logger.debug(f"Skipping save (too recent: {time_since_save:.1f}s ago)")
+                        return True  # Return success to avoid breaking calling code
+                
                 if not self._state_message_id:
                     logger.error("No state message ID")
                     return False

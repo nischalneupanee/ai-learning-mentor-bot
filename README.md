@@ -1,5 +1,9 @@
 # 🤖 AI Learning Mentor Bot
 
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Discord.py](https://img.shields.io/badge/discord.py-2.5+-blue.svg)](https://github.com/Pycord-Development/pycord)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A production-ready Discord bot that acts as an AI-powered learning mentor for tracking and improving your AI/ML/DL/Data Science learning journey.
 
 ## ✨ Features
@@ -37,16 +41,28 @@ A production-ready Discord bot that acts as an AI-powered learning mentor for tr
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Cloud Deployment (Recommended)
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
+
+1. Click the button above or go to [Railway](https://railway.app)
+2. Sign in with GitHub and select this repository
+3. Add environment variables (see `.env.example`)
+4. Deploy! ✨
+
+### Local Development
+
+**Prerequisites:**
 - Python 3.11+
 - Discord Bot with Administrator permissions
 - Google Gemini API key (free tier)
 
-### Installation
+**Installation:**
 
 1. **Clone the repository**
    ```bash
-   cd /path/to/study-bot
+   git clone https://github.com/YOUR_USERNAME/ai-learning-mentor-bot.git
+   cd ai-learning-mentor-bot
    ```
 
 2. **Create virtual environment**

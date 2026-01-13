@@ -18,6 +18,7 @@ from discord.ext import commands
 import asyncio
 import logging
 import sys
+import os
 from datetime import datetime
 
 from config import config
@@ -62,16 +63,24 @@ class LearningMentorBot(discord.Bot):
         
         super().__init__(
             intents=intents,
-            debug_guilds=[config.GUILD_ID] if config.GUILD_ID else None
+            debug_guilds=[config.GUILD_ID] if config.GUILD_ID else None,
+            auto_sync_commands=True  # Ensure commands sync on startup
         )
         
         self.state_manager: DiscordStateManager = None
         self.evaluator = None
         self._startup_time = None
+        self._ready_once = False  # Track if on_ready has fired
     
     async def on_ready(self) -> None:
         """Called when bot is ready."""
+        # Prevent duplicate initialization on reconnect
+        if self._ready_once:
+            logger.info(f"Bot reconnected as {self.user.name}")
+            return
+        
         self._startup_time = now()
+        self._ready_once = True
         
         logger.info(f"{'='*60}")
         logger.info(f"Bot connected as {self.user.name} (ID: {self.user.id})")
@@ -79,6 +88,15 @@ class LearningMentorBot(discord.Bot):
         logger.info(f"Discord.py version: {discord.__version__}")
         logger.info(f"Python version: {sys.version}")
         logger.info(f"{'='*60}")
+        
+        # Verify guild access
+        guild = self.get_guild(config.GUILD_ID)
+        if not guild:
+            logger.error(f"Cannot access guild {config.GUILD_ID}! Bot may not be in the server.")
+            await self.close()
+            return
+        
+        logger.info(f"Found guild: {guild.name}")
         
         # Initialize state manager
         logger.info("Initializing state manager...")
@@ -135,6 +153,14 @@ class LearningMentorBot(discord.Bot):
     async def on_error(self, event_method: str, *args, **kwargs) -> None:
         """Handle errors in event handlers."""
         logger.exception(f"Error in {event_method}")
+    
+    async def on_disconnect(self) -> None:
+        """Called when bot disconnects."""
+        logger.warning("Bot disconnected from Discord!")
+    
+    async def on_resumed(self) -> None:
+        """Called when bot resumes session."""
+        logger.info("Bot resumed connection to Discord")
     
     async def on_application_command_error(
         self,
@@ -209,6 +235,7 @@ def validate_config() -> bool:
 def main() -> None:
     """Main entry point."""
     logger.info("Starting AI Learning Mentor Bot...")
+    logger.info(f"Environment: {'Railway' if os.getenv('RAILWAY_ENVIRONMENT') else 'Local'}")
     
     # Validate configuration
     if not validate_config():
@@ -233,6 +260,8 @@ def main() -> None:
     except Exception as e:
         logger.exception(f"Fatal error: {e}")
         sys.exit(1)
+    finally:
+        logger.info("Bot stopped")
 
 
 if __name__ == "__main__":

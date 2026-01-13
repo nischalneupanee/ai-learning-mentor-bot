@@ -234,14 +234,13 @@ class TrackingCog(commands.Cog):
         try:
             await self.bot.wait_until_ready()
             # Small delay to let state initialize
-            await asyncio.sleep(3)
-            logger.info("Creating initial daily threads...")
+            await asyncio.sleep(5)
+            logger.info("TrackingCog: Creating initial daily threads...")
             # Create threads immediately on startup
             await self._ensure_daily_threads()
-            logger.info("Initial daily threads created")
+            logger.info("TrackingCog: Initial daily threads created")
         except Exception as e:
-            logger.error(f"Error in daily thread before_loop: {e}", exc_info=True)
-        await self.bot.wait_until_ready()
+            logger.error(f"TrackingCog: Error in daily thread before_loop: {e}", exc_info=True)
     
     async def _ensure_daily_threads(self) -> None:
         """Ensure each user has a daily thread for today."""

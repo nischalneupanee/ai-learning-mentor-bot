@@ -70,13 +70,13 @@ class DashboardCog(commands.Cog):
         try:
             await self.bot.wait_until_ready()
             # Initial delay to let state load
-            await asyncio.sleep(5)
-            logger.info("Creating initial dashboard...")
+            await asyncio.sleep(7)
+            logger.info("DashboardCog: Starting initial dashboard creation...")
             # Create initial dashboard
             await self._update_dashboard()
-            logger.info("Initial dashboard created successfully")
+            logger.info("DashboardCog: Initial dashboard created successfully!")
         except Exception as e:
-            logger.error(f"Error in dashboard before_loop: {e}", exc_info=True)
+            logger.error(f"DashboardCog: Error in dashboard before_loop: {e}", exc_info=True)
     
     @tasks.loop(hours=1)
     async def daily_evaluation_task(self) -> None:
